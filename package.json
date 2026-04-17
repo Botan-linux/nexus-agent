@@ -1,0 +1,34 @@
+{
+  "name": "nexus-agent",
+  "version": "1.0.0",
+  "description": "NexusAI Multi-Agent System — Otonom AI agentları",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "nexus": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "multi-agent",
+    "cybersecurity"
+  ],
+  "license": "MIT",
+  "author": "Botan",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "ora": "^8.0.0",
+    "z-ai-web-dev-sdk": "file:../.bun/install/global/node_modules/z-ai-web-dev-sdk"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.6.0"
+  }
+}
