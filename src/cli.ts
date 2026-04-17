@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
 import { Orchestrator } from './orchestrator.js';
+import { startServer } from './server.js';
 import type { LLMConfig } from './types.js';
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 
 // ─── BANNER ─────────────────────────────────────────────
 function banner() {
@@ -17,10 +21,12 @@ function banner() {
 function help() {
   banner();
   console.log(`KULLANIM:
+  nexus chat                    Interaktif chat modu
+  nexus serve [port]            Web UI sunucusu başlat (varsayılan: 3000)
   nexus run <agent> <görev>     Belirli agent'a görev ver
   nexus auto <görev>            Otomatik agent seçimi
-  nexus chat                    Interaktif chat modu
   nexus provider <name>         Provider değiştir (zai/openai/ollama/anthropic)
+  nexus config                  Yapılandırma göster/düzenle
   nexus list                    Agent listesi
   nexus stats                   İstatistikler
   nexus help                    Bu yardım
@@ -37,16 +43,47 @@ AGENT'LAR:
   🎬 creator    Content Strategist
   💼 freelance  Business Development
   📚 learn      Research & Education
-  🚀 deploy     DevOps Engineer`);
+  🚀 deploy     DevOps Engineer
+
+WEB UI:
+  nexus serve             → http://localhost:3000
+  nexus serve 8080        → http://localhost:8080`);
+}
+
+// ─── CONFIG ─────────────────────────────────────────────
+const CONFIG_DIR = join(homedir(), '.nexus-agent');
+const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
+
+interface NexusConfig {
+  provider: LLMConfig['provider'];
+  model?: string;
+  apiKey?: string;
+  baseUrl?: string;
+  ollamaUrl?: string;
+}
+
+function getConfig(): NexusConfig {
+  try {
+    if (existsSync(CONFIG_FILE)) {
+      return JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'));
+    }
+  } catch {}
+  return { provider: 'zai' };
+}
+
+function saveConfig(config: NexusConfig) {
+  if (!existsSync(CONFIG_DIR)) mkdirSync(CONFIG_DIR, { recursive: true });
+  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 
 // ─── MAIN ───────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
   const cmd = args[0];
-  const orch = new Orchestrator();
+  const config = getConfig();
+  const orch = new Orchestrator(config);
 
-  if (!cmd || cmd === 'help') { help(); return; }
+  if (!cmd || cmd === 'help' || cmd === '--help' || cmd === '-h') { help(); return; }
 
   if (cmd === 'list') {
     banner();
@@ -63,6 +100,30 @@ async function main() {
     return;
   }
 
+  if (cmd === 'config') {
+    banner();
+    console.log(`  Config: ~/.nexus-agent/config.json`);
+    console.log(`  Provider: ${config.provider}`);
+    if (config.model) console.log(`  Model: ${config.model}`);
+    if (config.baseUrl) console.log(`  Base URL: ${config.baseUrl}`);
+    if (config.ollamaUrl) console.log(`  Ollama URL: ${config.ollamaUrl}`);
+
+    const action = args[1];
+    if (action === 'set') {
+      const key = args[2];
+      const value = args[3];
+      if (!key || !value) {
+        console.log('\n  Kullanım: nexus config set <key> <value>');
+        console.log('  Keys: provider, model, apiKey, baseUrl, ollamaUrl');
+        return;
+      }
+      (config as any)[key] = value;
+      saveConfig(config);
+      console.log(`  ✓ ${key} = ${value}`);
+    }
+    return;
+  }
+
   if (cmd === 'provider') {
     const name = args[1];
     if (!name || !['zai', 'openai', 'ollama', 'anthropic'].includes(name)) {
@@ -70,7 +131,16 @@ async function main() {
       return;
     }
     orch.setProvider({ provider: name as LLMConfig['provider'] });
+    config.provider = name as LLMConfig['provider'];
+    saveConfig(config);
     console.log(`  ✓ Provider: ${name}`);
+    return;
+  }
+
+  if (cmd === 'serve') {
+    banner();
+    const port = parseInt(args[1] || '3000', 10);
+    startServer(port, config);
     return;
   }
 
