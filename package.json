@@ -1,33 +1,44 @@
 {
   "name": "nexus-agent",
   "version": "1.0.0",
-  "description": "NexusAI Multi-Agent System — Otonom AI agentları",
+  "description": "NexusAI Multi-Agent System — Autonomous AI agents for Dev, Security, Content & more",
   "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "nexus": "dist/cli.js"
-  },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/cli.ts",
-    "start": "node dist/cli.js"
+    "dev": "next dev -p 3000 2>&1 | tee dev.log",
+    "build": "next build",
+    "start": "next start",
+    "cli": "tsx src/cli.ts",
+    "cli:chat": "tsx src/cli.ts chat"
   },
   "keywords": [
     "ai",
     "agent",
     "multi-agent",
-    "cybersecurity"
+    "cybersecurity",
+    "cli",
+    "web-ui"
   ],
   "license": "MIT",
   "author": "Botan",
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "chalk": "^5.3.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "commander": "^12.0.0",
+    "lucide-react": "^1.8.0",
+    "next": "^16.2.4",
     "ora": "^8.0.0",
-    "z-ai-web-dev-sdk": "file:../.bun/install/global/node_modules/z-ai-web-dev-sdk"
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.2",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "tsx": "^4.0.0",
     "typescript": "^5.6.0"
   }
